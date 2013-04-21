@@ -478,16 +478,23 @@ function! <SID>StartExplorer(sticky,delBufNum,currBufName)
   if exists("+colorcolumn")
       setlocal colorcolumn&
   end
+
+  setlocal concealcursor=nc
+  setlocal conceallevel=2
  
   if has("syntax")
     syn clear
-    syn match MBENormal                   '\[[^\]]*\]'
-    syn match MBEChanged                  '\[[^\]]*\]+'
-    syn match MBEVisibleNormal            '\[[^\]]*\]\*+\='
-    syn match MBEVisibleChanged           '\[[^\]]*\]\*+'
-    syn match MBEVisibleActive            '\[[^\]]*\]\*!'
-    syn match MBEVisibleChangedActive     '\[[^\]]*\]\*+!'
+    syn match MBENormal                   '\[[^\]]*\]' contains=Ignore
+    syn match MBEChanged                  '\[[^\]]*\]+' contains=Ignore
+    syn match MBEVisibleNormal            '\[[^\]]*\]\*+\=' contains=Ignore
+    syn match MBEVisibleChanged           '\[[^\]]*\]\*+' contains=Ignore
+    syn match MBEVisibleActive            '\[[^\]]*\]\*!' contains=Ignore
+    syn match MBEVisibleChangedActive     '\[[^\]]*\]\*+!' contains=Ignore
 
+    syn match Ignore '\]\@<=[+!*]\+' conceal
+    if !g:miniBufExplShowBufNumbers
+        syn match Ignore '\([0-9]*\):' conceal
+    endif
     "MiniBufExpl Color Examples
     " hi MBEVisibleActive guifg=#A6DB29 guibg=fg
     " hi MBEVisibleChangedActive guifg=#F1266F guibg=fg
@@ -1099,9 +1106,7 @@ function! <SID>BuildBufferList(delBufNum, updateBufList, currBufName)
         " Establish the tab's content, including the differentiating root
         " dir if neccessary
         let l:tab = '['
-        if g:miniBufExplShowBufNumbers == 1
-            let l:tab .= l:i.':'
-        endif
+        let l:tab .= l:i.':'
 
         if (g:miniBufExplCheckDupeBufs == 0)
             " Get filename & Remove []'s & ()'s
@@ -1432,11 +1437,7 @@ function! <SID>GetSelectedBuffer()
   let @" = ""
   normal ""yi[
   if @" != ""
-    if !g:miniBufExplShowBufNumbers
-      let l:retv = bufnr(@")
-    else
-      let l:retv = substitute(@",'\([0-9]*\):.*', '\1', '') + 0
-    endif
+    let l:retv = substitute(@",'\([0-9]*\):.*', '\1', '') + 0
     let @" = l:save_reg
     return l:retv
   else
