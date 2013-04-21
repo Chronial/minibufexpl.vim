@@ -1419,6 +1419,30 @@ function! <SID>AutoUpdate(delBufNum,currBufName)
 endfunction
 
 " }}}
+" FixConcealedMouse - Fix the cursor position after mouse click {{{
+function! <SID>FixConcealedMouse()
+  " Make sure we are in our window
+  if bufname('%') != '-MiniBufExplorer-'
+    call <SID>DEBUG('GetSelectedBuffer called in invalid window',1)
+    return -1
+  endif
+  let scol = col('.')
+  let l = line('.')
+  let i = 0
+  let real = 0
+  while i < 999
+      let i = i+1
+      if !synconcealed(l, i)[0]
+          let real = real + 1
+      endif
+      if real == scol
+          exec 'normal! '.i.'|'
+          return i
+      endif
+  endwhile
+  return -1
+endfun " }}}
+
 " GetSelectedBuffer - From the MBE window, return the bufnum for buf under cursor {{{
 " 
 " If we are in our explorer window then return the buffer number
@@ -1645,6 +1669,7 @@ endfunction
 "
 function! s:MBEClick()
   call <SID>DEBUG('Entering MBEClick()',10)
+  call <SID>FixConcealedMouse()
   call <SID>MBESelectBuffer(0)
 endfunction
 
@@ -1653,6 +1678,7 @@ endfunction
 "
 function! s:MBEDoubleClick()
   call <SID>DEBUG('Entering MBEDoubleClick()',10)
+  call <SID>FixConcealedMouse()
   call <SID>MBESelectBuffer(0)
 endfunction
 
